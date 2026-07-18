@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import {
   AntDesign,
@@ -216,6 +216,10 @@ function AddButton() {
 
 export function CategorySelector({ type, value, onChange, error }: Props) {
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [type]);
 
   const categories: Category[] =
     type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
