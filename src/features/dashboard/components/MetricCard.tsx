@@ -13,7 +13,9 @@ function getMonthTotal(
 ): number {
   return transactions
     .filter((t) => {
-      const d = new Date(t.date);
+      const d = t.date.length === 10
+        ? new Date(t.date + "T00:00:00")
+        : new Date(t.date);
       return t.type === type && d.getFullYear() === year && d.getMonth() === month;
     })
     .reduce((sum, t) => sum + t.amount, 0);

@@ -26,8 +26,15 @@ export function getCategoryIcon(label: string, type: "income" | "expense") {
   return { iconFamily: cat.iconFamily, icon: cat.icon };
 }
 
+function parseLocalDate(dateStr: string): Date {
+  if (dateStr.length === 10) {
+    return new Date(dateStr + "T00:00:00");
+  }
+  return new Date(dateStr);
+}
+
 export function formatDate(iso: string): string {
-  const date = new Date(iso);
+  const date = parseLocalDate(iso);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
@@ -49,7 +56,7 @@ export function formatDate(iso: string): string {
 }
 
 export function formatDateHeader(iso: string): string {
-  const date = new Date(iso);
+  const date = parseLocalDate(iso);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);

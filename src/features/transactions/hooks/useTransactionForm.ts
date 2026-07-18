@@ -25,6 +25,13 @@ const CATEGORY_DEFAULTS: Record<TransactionType, string> = {
   income: "Salary",
 };
 
+function formatLocalDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function getInitialFields(): FormState {
   return {
     type: "expense",
@@ -52,7 +59,9 @@ export function useTransactionForm() {
         amount: String(editingTransaction.amount),
         category: editingTransaction.category,
         name: editingTransaction.name ?? "",
-        date: new Date(editingTransaction.date),
+        date: editingTransaction.date.length === 10
+          ? new Date(editingTransaction.date + "T00:00:00")
+          : new Date(editingTransaction.date),
         note: editingTransaction.description ?? "",
       });
       setErrors({});
@@ -107,7 +116,7 @@ export function useTransactionForm() {
           category: fields.category,
           name,
           description: fields.note || undefined,
-          date: fields.date.toISOString(),
+          date: formatLocalDate(fields.date),
         });
         setEditingTransaction(null);
         showToast({
@@ -125,7 +134,7 @@ export function useTransactionForm() {
         category: fields.category,
         name,
         description: fields.note || undefined,
-        date: fields.date.toISOString(),
+        date: formatLocalDate(fields.date),
       };
 
       await addTransaction(transaction);
