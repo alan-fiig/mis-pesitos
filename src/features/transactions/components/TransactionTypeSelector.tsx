@@ -6,9 +6,13 @@ import type { TransactionType } from "../categories";
 interface Props {
   value: TransactionType;
   onChange: (type: TransactionType) => void;
+  lockedType?: TransactionType | null;
 }
 
-export function TransactionTypeSelector({ value, onChange }: Props) {
+export function TransactionTypeSelector({ value, onChange, lockedType }: Props) {
+  const expenseDisabled = lockedType === "income";
+  const incomeDisabled = lockedType === "expense";
+
   return (
     <View
       style={{
@@ -23,7 +27,8 @@ export function TransactionTypeSelector({ value, onChange }: Props) {
       }}
     >
       <TouchableOpacity
-        onPress={() => onChange("expense")}
+        onPress={() => !expenseDisabled && onChange("expense")}
+        disabled={expenseDisabled}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -34,6 +39,7 @@ export function TransactionTypeSelector({ value, onChange }: Props) {
           borderRadius: 9999,
           backgroundColor:
             value === "expense" ? colors.secondary : "transparent",
+          opacity: expenseDisabled ? 0.4 : 1,
         }}
       >
         <Text
@@ -49,7 +55,8 @@ export function TransactionTypeSelector({ value, onChange }: Props) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => onChange("income")}
+        onPress={() => !incomeDisabled && onChange("income")}
+        disabled={incomeDisabled}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -59,6 +66,7 @@ export function TransactionTypeSelector({ value, onChange }: Props) {
           paddingVertical: 8,
           borderRadius: 9999,
           backgroundColor: value === "income" ? colors.primary : "transparent",
+          opacity: incomeDisabled ? 0.4 : 1,
         }}
       >
         <Text

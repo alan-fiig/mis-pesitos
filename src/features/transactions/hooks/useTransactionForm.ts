@@ -162,10 +162,16 @@ export function useTransactionForm() {
 
   useFocusEffect(
     useCallback(() => {
-      if (editingTransaction) return;
-      reset();
-    }, [editingTransaction, reset]),
+      if (!editingTransaction) {
+        reset();
+      }
+      return () => {
+        setEditingTransaction(null);
+      };
+    }, [editingTransaction, reset, setEditingTransaction]),
   );
 
-  return { fields, errors, updateField, submit, reset, isEditing };
+  const originalType = editingTransaction?.type ?? null;
+
+  return { fields, errors, updateField, submit, reset, isEditing, originalType };
 }

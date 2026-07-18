@@ -14,7 +14,7 @@ import TittleTransaction from "../components/TittleTransaction";
 export function TransactionsScreen() {
   const navigation = useNavigation<any>();
   const setEditingTransaction = useTransactionsStore((s) => s.setEditingTransaction);
-  const { fields, errors, updateField, submit, isEditing } = useTransactionForm();
+  const { fields, errors, updateField, submit, isEditing, originalType } = useTransactionForm();
 
   const handleCancel = () => {
     setEditingTransaction(null);
@@ -45,6 +45,7 @@ export function TransactionsScreen() {
           <TransactionTypeSelector
             value={fields.type}
             onChange={(type) => updateField("type", type)}
+            lockedType={originalType}
           />
         </View>
         <View style={{ marginBottom: 20 }}>
