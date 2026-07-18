@@ -4,6 +4,7 @@ import type { TransactionType } from "../categories";
 import type { Expense } from "../../../types/expense";
 import { useTransactionsStore } from "../../../store/transactionsStore";
 import { useToast } from "../../../shared/context/ToastContext";
+import { formatAmount, parseAmount } from "../components/AmountInput";
 
 interface FormState {
   type: TransactionType;
@@ -56,7 +57,7 @@ export function useTransactionForm() {
     if (editingTransaction) {
       setFields({
         type: editingTransaction.type,
-        amount: String(editingTransaction.amount),
+        amount: formatAmount(String(editingTransaction.amount)),
         category: editingTransaction.category,
         name: editingTransaction.name ?? "",
         date: editingTransaction.date.length === 10
@@ -83,7 +84,7 @@ export function useTransactionForm() {
   const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
-    const amountNum = parseFloat(fields.amount);
+    const amountNum = parseFloat(parseAmount(fields.amount));
     if (!fields.amount || isNaN(amountNum) || amountNum <= 0) {
       newErrors.amount = "Enter a valid amount";
     }
@@ -104,7 +105,7 @@ export function useTransactionForm() {
     if (!validate()) return false;
 
     const typeLabel = fields.type === "income" ? "Income" : "Expense";
-    const amount = parseFloat(fields.amount);
+    const amount = parseFloat(parseAmount(fields.amount));
     const name = fields.name.trim();
 
     try {
