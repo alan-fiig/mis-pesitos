@@ -10,6 +10,7 @@ import { NoteInput } from "../components/NoteInput";
 import { NameInput } from "../components/NameInput";
 import { SaveButton } from "../components/SaveButton";
 import TittleTransaction from "../components/TittleTransaction";
+import { MonthsSelector } from "../components/MonthsSelector";
 
 export function TransactionsScreen() {
   const navigation = useNavigation<any>();
@@ -74,6 +75,14 @@ export function TransactionsScreen() {
           <DatePickerField
             value={fields.date}
             onChange={(date) => updateField("date", date)}
+          />
+        </View>
+        <View style={{ marginBottom: 20 }}>
+          <MonthsSelector
+            value={fields.months}
+            onChange={(months) => updateField("months", months)}
+            amount={fields.amount}
+            type={fields.type}
           />
         </View>
         <View style={{ marginBottom: 20 }}>

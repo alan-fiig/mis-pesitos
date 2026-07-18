@@ -8,4 +8,7 @@ export interface Expense {
   name?: string;
   description?: string;
   date: string;
+  installment_group?: string;
+  installment_index?: number;
+  installment_total?: number;
 }

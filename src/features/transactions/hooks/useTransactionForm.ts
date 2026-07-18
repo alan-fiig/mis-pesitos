@@ -13,6 +13,7 @@ interface FormState {
   name: string;
   date: Date;
   note: string;
+  months: number;
 }
 
 interface FormErrors {
@@ -33,6 +34,14 @@ function formatLocalDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 function getInitialFields(): FormState {
   return {
     type: "expense",
@@ -41,33 +50,63 @@ function getInitialFields(): FormState {
     name: "",
     date: new Date(),
     note: "",
+    months: 0,
   };
+}
+
+function addMonthsToDate(date: Date, months: number): Date {
+  const result = new Date(date);
+  result.setMonth(result.getMonth() + months);
+  return result;
+}
+
+function getInstallmentName(baseName: string, index: number, total: number): string {
+  if (!baseName) return `(${index}/${total})`;
+  return `${baseName} (${index}/${total})`;
 }
 
 export function useTransactionForm() {
   const editingTransaction = useTransactionsStore((s) => s.editingTransaction);
   const setEditingTransaction = useTransactionsStore((s) => s.setEditingTransaction);
   const addTransaction = useTransactionsStore((s) => s.addTransaction);
+  const addTransactions = useTransactionsStore((s) => s.addTransactions);
   const updateTransaction = useTransactionsStore((s) => s.updateTransaction);
+  const removeTransactionsByGroup = useTransactionsStore((s) => s.removeTransactionsByGroup);
+  const getTransactionsByGroup = useTransactionsStore((s) => s.getTransactionsByGroup);
 
   const [fields, setFields] = useState<FormState>(getInitialFields);
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (editingTransaction) {
-      setFields({
-        type: editingTransaction.type,
-        amount: formatAmount(String(editingTransaction.amount)),
-        category: editingTransaction.category,
-        name: editingTransaction.name ?? "",
-        date: editingTransaction.date.length === 10
-          ? new Date(editingTransaction.date + "T00:00:00")
-          : new Date(editingTransaction.date),
-        note: editingTransaction.description ?? "",
-      });
-      setErrors({});
+      const loadEditingData = async () => {
+        let months = 0;
+        let groupId = editingTransaction.installment_group;
+
+        if (groupId) {
+          const groupTransactions = await getTransactionsByGroup(groupId);
+          if (groupTransactions.length > 0) {
+            months = groupTransactions[0].installment_total ?? 0;
+          }
+        }
+
+        setFields({
+          type: editingTransaction.type,
+          amount: formatAmount(String(editingTransaction.amount)),
+          category: editingTransaction.category,
+          name: editingTransaction.name?.replace(/\s*\(\d+\/\d+\)$/, "") ?? "",
+          date: editingTransaction.date.length === 10
+            ? new Date(editingTransaction.date + "T00:00:00")
+            : new Date(editingTransaction.date),
+          note: editingTransaction.description ?? "",
+          months,
+        });
+        setErrors({});
+      };
+
+      loadEditingData();
     }
-  }, [editingTransaction]);
+  }, [editingTransaction, getTransactionsByGroup]);
 
   const updateField = useCallback(
     <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -110,15 +149,89 @@ export function useTransactionForm() {
 
     try {
       if (isEditing) {
-        const { id } = editingTransaction;
-        await updateTransaction(id, {
-          type: fields.type,
-          amount,
-          category: fields.category,
-          name,
-          description: fields.note || undefined,
-          date: formatLocalDate(fields.date),
-        });
+        const { id, installment_group: existingGroupId } = editingTransaction;
+
+        if (existingGroupId && fields.months > 0) {
+          await removeTransactionsByGroup(existingGroupId);
+
+          const groupId = generateUUID();
+          const installmentAmount = amount / fields.months;
+          const transactions: Expense[] = [];
+
+          for (let i = 0; i < fields.months; i++) {
+            const installmentDate = addMonthsToDate(fields.date, i);
+            const installmentName = getInstallmentName(name, i + 1, fields.months);
+            const installmentAmountRounded = i === fields.months - 1
+              ? amount - installmentAmount * (fields.months - 1)
+              : installmentAmount;
+
+            transactions.push({
+              id: i === 0 ? id : Date.now().toString() + i,
+              type: fields.type,
+              amount: Math.round(installmentAmountRounded * 100) / 100,
+              category: fields.category,
+              name: installmentName,
+              description: fields.note || undefined,
+              date: formatLocalDate(installmentDate),
+              installment_group: groupId,
+              installment_index: i + 1,
+              installment_total: fields.months,
+            });
+          }
+
+          await addTransactions(transactions);
+        } else if (existingGroupId && fields.months === 0) {
+          await removeTransactionsByGroup(existingGroupId);
+
+          const transaction: Expense = {
+            id,
+            type: fields.type,
+            amount,
+            category: fields.category,
+            name,
+            description: fields.note || undefined,
+            date: formatLocalDate(fields.date),
+          };
+
+          await addTransaction(transaction);
+        } else if (!existingGroupId && fields.months > 0) {
+          const groupId = generateUUID();
+          const installmentAmount = amount / fields.months;
+          const transactions: Expense[] = [];
+
+          for (let i = 0; i < fields.months; i++) {
+            const installmentDate = addMonthsToDate(fields.date, i);
+            const installmentName = getInstallmentName(name, i + 1, fields.months);
+            const installmentAmountRounded = i === fields.months - 1
+              ? amount - installmentAmount * (fields.months - 1)
+              : installmentAmount;
+
+            transactions.push({
+              id: i === 0 ? id : Date.now().toString() + i,
+              type: fields.type,
+              amount: Math.round(installmentAmountRounded * 100) / 100,
+              category: fields.category,
+              name: installmentName,
+              description: fields.note || undefined,
+              date: formatLocalDate(installmentDate),
+              installment_group: groupId,
+              installment_index: i + 1,
+              installment_total: fields.months,
+            });
+          }
+
+          await addTransactions(transactions);
+        } else {
+          await updateTransaction(id, {
+            type: fields.type,
+            amount,
+            category: fields.category,
+            name,
+            description: fields.note || undefined,
+            date: formatLocalDate(fields.date),
+          });
+        }
+
         setEditingTransaction(null);
         showToast({
           type: "success",
@@ -128,17 +241,47 @@ export function useTransactionForm() {
         return true;
       }
 
-      const transaction: Expense = {
-        id: Date.now().toString(),
-        type: fields.type,
-        amount,
-        category: fields.category,
-        name,
-        description: fields.note || undefined,
-        date: formatLocalDate(fields.date),
-      };
+      if (fields.months > 0) {
+        const groupId = generateUUID();
+        const installmentAmount = amount / fields.months;
+        const transactions: Expense[] = [];
 
-      await addTransaction(transaction);
+        for (let i = 0; i < fields.months; i++) {
+          const installmentDate = addMonthsToDate(fields.date, i);
+          const installmentName = getInstallmentName(name, i + 1, fields.months);
+          const installmentAmountRounded = i === fields.months - 1
+            ? amount - installmentAmount * (fields.months - 1)
+            : installmentAmount;
+
+          transactions.push({
+            id: Date.now().toString() + i,
+            type: fields.type,
+            amount: Math.round(installmentAmountRounded * 100) / 100,
+            category: fields.category,
+            name: installmentName,
+            description: fields.note || undefined,
+            date: formatLocalDate(installmentDate),
+            installment_group: groupId,
+            installment_index: i + 1,
+            installment_total: fields.months,
+          });
+        }
+
+        await addTransactions(transactions);
+      } else {
+        const transaction: Expense = {
+          id: Date.now().toString(),
+          type: fields.type,
+          amount,
+          category: fields.category,
+          name,
+          description: fields.note || undefined,
+          date: formatLocalDate(fields.date),
+        };
+
+        await addTransaction(transaction);
+      }
+
       setFields(getInitialFields());
       showToast({
         type: "success",
@@ -154,7 +297,7 @@ export function useTransactionForm() {
       });
       return false;
     }
-  }, [fields, validate, isEditing, editingTransaction, addTransaction, updateTransaction, setEditingTransaction, showToast]);
+  }, [fields, validate, isEditing, editingTransaction, addTransaction, addTransactions, updateTransaction, removeTransactionsByGroup, setEditingTransaction, showToast]);
 
   const reset = useCallback(() => {
     setFields(getInitialFields());

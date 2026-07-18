@@ -181,39 +181,6 @@ function LessButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-function AddButton() {
-  return (
-    <View
-      style={{
-        width: ITEM_WIDTH,
-        alignItems: "center",
-        paddingVertical: 16,
-        borderWidth: 1,
-        borderColor: colors.light__gray,
-        margin: 4,
-      }}
-    >
-      <View
-        style={{
-          width: 50,
-          height: 50,
-          borderRadius: 25,
-          backgroundColor: colors.light__gray,
-          borderWidth: 1,
-          borderColor: colors.light__gray,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </View>
-      <Text style={[textStyles.label_sm, { color: colors.text, marginTop: 4 }]}>
-        Add
-      </Text>
-    </View>
-  );
-}
-
 export function CategorySelector({ type, value, onChange, error }: Props) {
   const [expanded, setExpanded] = useState(false);
 
@@ -246,7 +213,6 @@ export function CategorySelector({ type, value, onChange, error }: Props) {
         )}
         {expanded && (
           <>
-            <AddButton />
             <LessButton onPress={() => setExpanded(false)} />
           </>
         )}
