@@ -2,7 +2,6 @@ import React from "react";
 import { ScrollView, View } from "react-native";
 import TotalBalanceCard from "../components/TotalBalanceCard";
 import { IncomeCard, ExpenseCard } from "../components/MetricCard";
-import PeriodSelector from "../components/PeriodSelector";
 import InsightCard from "../components/InsightCard";
 import RecentTransactionsCard from "../components/RecentTransactionsCard";
 
@@ -19,9 +18,6 @@ export function DashboardScreen() {
         <View style={{ flex: 1 }}>
           <ExpenseCard />
         </View>
-      </View>
-      <View style={{ marginBottom: 20 }}>
-        <PeriodSelector />
       </View>
       <View style={{ marginBottom: 20 }}>
         <InsightCard />
