@@ -6,6 +6,7 @@ import { textStyles } from "../../../shared/theme/typography";
 import { useTransactionsStore } from "../../../store/transactionsStore";
 import { useToast } from "../../../shared/context/ToastContext";
 import { TransactionCard } from "../../../shared/components/TransactionCard";
+import { TransactionDetailModal } from "../../../shared/components/TransactionDetailModal";
 import { formatDateHeader } from "../../../shared/utils/transactions";
 import { SearchBar } from "../components/SearchBar";
 import { FilterChips } from "../components/FilterChips";
@@ -24,6 +25,7 @@ export function HistoryScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Expense | null>(null);
 
   const handleEdit = (t: Expense) => {
     setEditingTransaction(t);
@@ -42,13 +44,12 @@ export function HistoryScreen() {
   };
 
   useEffect(() => {
-    if (transactions.length === 0) {
-      loadTransactions();
-    }
+    loadTransactions();
   }, []);
 
   const filteredTransactions = useMemo(() => {
-    let filtered = transactions;
+    const today = new Date().toISOString().slice(0, 10);
+    let filtered = transactions.filter((t) => t.date <= today);
     if (typeFilter !== "all") {
       filtered = filtered.filter((t) => t.type === typeFilter);
     }
@@ -142,6 +143,7 @@ export function HistoryScreen() {
                 <TransactionCard
                   transaction={item}
                   showDate={false}
+                  onPress={() => setSelectedTransaction(item)}
                   onEdit={() => handleEdit(item)}
                   onDelete={() => setDeleteTarget(item)}
                 />
@@ -156,6 +158,12 @@ export function HistoryScreen() {
         transactionName={deleteTarget?.name ?? ""}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <TransactionDetailModal
+        visible={selectedTransaction !== null}
+        transaction={selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
       />
     </>
   );

@@ -8,16 +8,18 @@ import { ICON_SETS, getCategoryIcon, formatDate, formatAmount } from "../utils/t
 interface Props {
   transaction: Expense;
   showDate?: boolean;
+  onPress?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-export function TransactionCard({ transaction: t, showDate = true, onEdit, onDelete }: Props) {
+export function TransactionCard({ transaction: t, showDate = true, onPress, onEdit, onDelete }: Props) {
   const { iconFamily, icon } = getCategoryIcon(t.category, t.type);
   const IconComponent = ICON_SETS[iconFamily as keyof typeof ICON_SETS];
   const iconColor = t.type === "income" ? colors.primary : colors.secondary;
 
   return (
+    <TouchableOpacity disabled={!onPress} onPress={onPress} activeOpacity={0.7}>
     <View
       style={{
         flexDirection: "row",
@@ -81,5 +83,6 @@ export function TransactionCard({ transaction: t, showDate = true, onEdit, onDel
         )}
       </View>
     </View>
+    </TouchableOpacity>
   );
 }

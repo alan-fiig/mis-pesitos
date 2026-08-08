@@ -83,16 +83,19 @@ export function useTransactionForm() {
         let months = 0;
         let groupId = editingTransaction.installment_group;
 
+        let totalAmount = editingTransaction.amount;
+
         if (groupId) {
           const groupTransactions = await getTransactionsByGroup(groupId);
           if (groupTransactions.length > 0) {
             months = groupTransactions[0].installment_total ?? 0;
+            totalAmount = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
           }
         }
 
         setFields({
           type: editingTransaction.type,
-          amount: formatAmount(String(editingTransaction.amount)),
+          amount: formatAmount(String(totalAmount)),
           category: editingTransaction.category,
           name: editingTransaction.name?.replace(/\s*\(\d+\/\d+\)$/, "") ?? "",
           date: editingTransaction.date.length === 10
@@ -156,13 +159,14 @@ export function useTransactionForm() {
 
           const groupId = generateUUID();
           const installmentAmount = amount / fields.months;
+          const roundedInstallment = Math.round(installmentAmount * 100) / 100;
           const transactions: Expense[] = [];
 
           for (let i = 0; i < fields.months; i++) {
             const installmentDate = addMonthsToDate(fields.date, i);
             const installmentName = getInstallmentName(name, i + 1, fields.months);
             const installmentAmountRounded = i === fields.months - 1
-              ? amount - installmentAmount * (fields.months - 1)
+              ? Math.round((amount - roundedInstallment * (fields.months - 1)) * 100) / 100
               : installmentAmount;
 
             transactions.push({
@@ -197,13 +201,14 @@ export function useTransactionForm() {
         } else if (!existingGroupId && fields.months > 0) {
           const groupId = generateUUID();
           const installmentAmount = amount / fields.months;
+          const roundedInstallment = Math.round(installmentAmount * 100) / 100;
           const transactions: Expense[] = [];
 
           for (let i = 0; i < fields.months; i++) {
             const installmentDate = addMonthsToDate(fields.date, i);
             const installmentName = getInstallmentName(name, i + 1, fields.months);
             const installmentAmountRounded = i === fields.months - 1
-              ? amount - installmentAmount * (fields.months - 1)
+              ? Math.round((amount - roundedInstallment * (fields.months - 1)) * 100) / 100
               : installmentAmount;
 
             transactions.push({
@@ -244,13 +249,14 @@ export function useTransactionForm() {
       if (fields.months > 0) {
         const groupId = generateUUID();
         const installmentAmount = amount / fields.months;
+        const roundedInstallment = Math.round(installmentAmount * 100) / 100;
         const transactions: Expense[] = [];
 
         for (let i = 0; i < fields.months; i++) {
           const installmentDate = addMonthsToDate(fields.date, i);
           const installmentName = getInstallmentName(name, i + 1, fields.months);
           const installmentAmountRounded = i === fields.months - 1
-            ? amount - installmentAmount * (fields.months - 1)
+            ? Math.round((amount - roundedInstallment * (fields.months - 1)) * 100) / 100
             : installmentAmount;
 
           transactions.push({
