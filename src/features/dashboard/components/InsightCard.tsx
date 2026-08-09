@@ -1,10 +1,12 @@
 import { Dimensions, View, Text } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { BarChart } from "react-native-gifted-charts";
 import { textStyles } from "../../../shared/theme/typography";
 import { colors } from "../../../shared/theme/colors";
 import { useTransactionsStore } from "../../../store/transactionsStore";
 import type { Expense } from "../../../types/expense";
+import { openMonthHistory } from "../../../shared/utils/historyFilters";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -23,6 +25,7 @@ function parseDate(t: Expense): Date {
 }
 
 export default function InsightCard() {
+  const navigation = useNavigation<any>();
   const transactions = useTransactionsStore((s) => s.transactions);
   const year = new Date().getFullYear();
 
@@ -50,6 +53,11 @@ export default function InsightCard() {
       : 0;
   const labelShift = (barWidth + ITEM_SPACING) / 2;
 
+  const openMonthHistoryPress = (type: "income" | "expense", month: number) => {
+    const ym = `${year}-${String(month + 1).padStart(2, "0")}`;
+    openMonthHistory(navigation, ym, type);
+  };
+
   const data = monthsWithData.flatMap(({ income, expense, month }) => [
     {
       value: income,
@@ -67,8 +75,13 @@ export default function InsightCard() {
           {MONTH_LABELS[month]}
         </Text>
       ),
+      onPress: () => openMonthHistoryPress("income", month),
     },
-    { value: expense, frontColor: colors.tertiary },
+    {
+      value: expense,
+      frontColor: colors.tertiary,
+      onPress: () => openMonthHistoryPress("expense", month),
+    },
   ]);
 
   return (

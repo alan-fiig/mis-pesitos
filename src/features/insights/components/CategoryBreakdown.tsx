@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { colors } from "../../../shared/theme/colors";
 import { textStyles } from "../../../shared/theme/typography";
+import {
+  currentYearMonth,
+  openMonthHistory,
+} from "../../../shared/utils/historyFilters";
 
 export interface CategoryBreakdownEntry {
   category: string;
@@ -27,6 +32,7 @@ function formatPercent(percent: number): string {
 }
 
 export function CategoryBreakdown({ entries, total }: Props) {
+  const navigation = useNavigation<any>();
   const [expanded, setExpanded] = useState(false);
   const visibleEntries = expanded ? entries : entries.slice(0, 5);
   const hasMore = entries.length > 5;
@@ -48,8 +54,13 @@ export function CategoryBreakdown({ entries, total }: Props) {
       {visibleEntries.map(({ category, amount, color }) => {
         const percent = (amount / total) * 100;
         return (
-          <View
+          <TouchableOpacity
             key={category}
+            onPress={() =>
+              openMonthHistory(navigation, currentYearMonth(), "expense", [
+                category,
+              ])
+            }
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -86,7 +97,7 @@ export function CategoryBreakdown({ entries, total }: Props) {
             >
               {formatAmount(amount)}
             </Text>
-          </View>
+          </TouchableOpacity>
         );
       })}
       {hasMore && (

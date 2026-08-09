@@ -1,10 +1,15 @@
 import { View, Text } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { PieChart } from "react-native-gifted-charts";
 import { colors } from "../../../shared/theme/colors";
 import { textStyles } from "../../../shared/theme/typography";
 import { PIE_COLORS } from "../constants";
 import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
+import {
+  currentYearMonth,
+  openMonthHistory,
+} from "../../../shared/utils/historyFilters";
 
 function formatAmount(amount: number): string {
   return `$${amount.toLocaleString("en-US", {
@@ -18,6 +23,7 @@ function formatPercent(change: number): string {
 }
 
 export function MonthlyExpensePieChart() {
+  const navigation = useNavigation<any>();
   const { entries, currentTotal, change } = useMonthlyExpenses();
 
   const isUp = change !== null && change >= 0;
@@ -59,6 +65,14 @@ export function MonthlyExpensePieChart() {
           innerCircleColor={colors.background}
           strokeColor={colors.background}
           strokeWidth={1}
+          onPress={(item: any, index: number) => {
+            const category = entries[index]?.[0];
+            if (category) {
+              openMonthHistory(navigation, currentYearMonth(), "expense", [
+                category,
+              ]);
+            }
+          }}
           centerLabelComponent={() => (
             <View style={{ alignItems: "center" }}>
               <Text
