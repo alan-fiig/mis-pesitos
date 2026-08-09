@@ -27,7 +27,9 @@ function parseDate(t: Expense): Date {
 export default function InsightCard() {
   const navigation = useNavigation<any>();
   const transactions = useTransactionsStore((s) => s.transactions);
-  const year = new Date().getFullYear();
+  const now = new Date();
+  const year = now.getFullYear();
+  const currentMonth = now.getMonth();
 
   const monthly = Array.from({ length: 12 }, () => ({ income: 0, expense: 0 }));
 
@@ -44,7 +46,10 @@ export default function InsightCard() {
 
   const monthsWithData = monthly
     .map((totals, m) => ({ ...totals, month: m }))
-    .filter(({ income, expense }) => income > 0 || expense > 0);
+    .filter(
+      ({ income, expense }, m) =>
+        m <= currentMonth && (income > 0 || expense > 0)
+    );
 
   const N = monthsWithData.length * 2;
   const barWidth =

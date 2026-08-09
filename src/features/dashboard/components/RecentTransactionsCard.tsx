@@ -8,10 +8,19 @@ import { TransactionCard } from "../../../shared/components/TransactionCard";
 import { TransactionDetailModal } from "../../../shared/components/TransactionDetailModal";
 import type { Expense } from "../../../types/expense";
 
+function parseDate(t: Expense): Date {
+  return t.date.length === 10
+    ? new Date(t.date + "T00:00:00")
+    : new Date(t.date);
+}
+
 export default function RecentTransactionsCard() {
   const navigation = useNavigation<any>();
   const transactions = useTransactionsStore((s) => s.transactions);
-  const recent = transactions.slice(0, 5);
+  const now = new Date();
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const visible = transactions.filter((t) => parseDate(t) <= currentMonthEnd);
+  const recent = visible.slice(0, 5);
   const [selectedTransaction, setSelectedTransaction] = useState<Expense | null>(null);
 
   if (recent.length === 0) {

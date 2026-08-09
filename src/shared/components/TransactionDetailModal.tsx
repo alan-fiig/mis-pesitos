@@ -72,83 +72,97 @@ export function TransactionDetailModal({
 
   return (
     <Modal visible={visible} transparent animationType="none">
-      <Pressable
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "rgba(0,0,0,0.6)",
-        }}
-        onPress={onClose}
-      >
+      <View style={{ flex: 1 }}>
         <Pressable
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+            },
+          ]}
+          onPress={onClose}
+        />
+        <View
           style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
             backgroundColor: colors.dark_gray,
             borderRadius: 16,
             padding: 24,
             width: "80%",
             maxWidth: 360,
           }}
-          onPress={() => {}}
-        >
-          <View style={{ alignItems: "center", marginBottom: 20 }}>
-            <View
-              style={{
-                backgroundColor: colors.light__gray,
-                borderRadius: 9999,
-                padding: 16,
-                width: 64,
-                height: 64,
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 12,
-              }}
-            >
-              <IconComponent
-                name={icon as keyof typeof IconComponent.glyphMap}
-                size={32}
-                color={iconColor}
-              />
-            </View>
+          >
+            <View style={{ alignItems: "center", marginBottom: 20 }}>
+              <View
+                style={{
+                  backgroundColor: colors.light__gray,
+                  borderRadius: 9999,
+                  padding: 16,
+                  width: 64,
+                  height: 64,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <IconComponent
+                  name={icon as keyof typeof IconComponent.glyphMap}
+                  size={32}
+                  color={iconColor}
+                />
+              </View>
 
-            <Text
-              style={[
-                textStyles.headline_lg,
-                { color: "white", textAlign: "center" },
-              ]}
-            >
-              {t.name || t.category}
-            </Text>
+              <Text
+                style={[
+                  textStyles.headline_lg,
+                  { color: "white", textAlign: "center" },
+                ]}
+              >
+                {t.name || t.category}
+              </Text>
 
-            <Text
-              style={[textStyles.body_md, { color: colors.text, marginTop: 4 }]}
-            >
-              {typeLabel}
-            </Text>
-          </View>
-
-          <View style={{ gap: 12, marginBottom: 24 }}>
-            <DetailRow
-              label="Amount"
-              value={formatAmount(t.amount, t.type)}
-              valueColor={iconColor}
-            />
-            <DetailRow label="Category" value={t.category} />
-            <DetailRow label="Date" value={formatDate(t.date)} />
-          </View>
-
-          {installments.length > 0 ? (
-            <View style={{ marginBottom: 24 }}>
               <Text
                 style={[
                   textStyles.body_md,
-                  { color: colors.text, marginBottom: 8 },
+                  { color: colors.text, marginTop: 4 },
                 ]}
               >
-                Months
+                {typeLabel}
               </Text>
-              <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
-                <View style={{ gap: 6 }}>
+            </View>
+
+            <View style={{ gap: 12, marginBottom: 24 }}>
+              <DetailRow
+                label="Amount"
+                value={formatAmount(t.amount, t.type)}
+                valueColor={iconColor}
+              />
+              <DetailRow label="Category" value={t.category} />
+              <DetailRow label="Date" value={formatDate(t.date)} />
+            </View>
+
+            {installments.length > 0 ? (
+              <View style={{ marginBottom: 24 }}>
+                <Text
+                  style={[
+                    textStyles.body_md,
+                    { color: colors.text, marginBottom: 8 },
+                  ]}
+                >
+                  Months
+                </Text>
+                <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                  <View style={{ gap: 6 }}>
                   {installments.map((inst) => {
                     const isCurrent = inst.id === t.id;
                     return (
@@ -192,7 +206,9 @@ export function TransactionDetailModal({
                           style={[
                             textStyles.label_md,
                             {
-                              color: isCurrent ? colors.secondary : colors.text,
+                              color: isCurrent
+                                ? colors.secondary
+                                : colors.text,
                             },
                           ]}
                         >
@@ -202,67 +218,68 @@ export function TransactionDetailModal({
                     );
                   })}
                 </View>
-              </ScrollView>
+                </ScrollView>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 8,
-                  paddingTop: 8,
-                  paddingHorizontal: 10,
-                  borderTopWidth: 1,
-                  borderTopColor: colors.light__gray,
-                  gap: 10,
-                }}
-              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: 8,
+                    paddingTop: 8,
+                    paddingHorizontal: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.light__gray,
+                    gap: 10,
+                  }}
+                >
+                  <Text
+                    style={[textStyles.label_md, { color: "white", width: 20 }]}
+                  ></Text>
+                  <Text
+                    style={[textStyles.body_md, { color: "white", flex: 1 }]}
+                  ></Text>
+                  <Text style={[textStyles.label_md, { color: iconColor }]}>
+                    {formatAmount(
+                      installments.reduce((sum, inst) => sum + inst.amount, 0),
+                      t.type,
+                    )}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {t.description ? (
+              <View style={{ marginBottom: 24 }}>
                 <Text
-                  style={[textStyles.label_md, { color: "white", width: 20 }]}
-                ></Text>
-                <Text
-                  style={[textStyles.body_md, { color: "white", flex: 1 }]}
-                ></Text>
-                <Text style={[textStyles.label_md, { color: iconColor }]}>
-                  {formatAmount(
-                    installments.reduce((sum, inst) => sum + inst.amount, 0),
-                    t.type,
-                  )}
+                  style={[
+                    textStyles.body_md,
+                    { color: colors.text, marginBottom: 8 },
+                  ]}
+                >
+                  Note
+                </Text>
+                <Text style={[textStyles.body_md, { color: "white" }]}>
+                  {t.description}
                 </Text>
               </View>
-            </View>
-          ) : null}
+            ) : null}
 
-          {t.description ? (
-            <View style={{ marginBottom: 24 }}>
-              <Text
-                style={[
-                  textStyles.body_md,
-                  { color: colors.text, marginBottom: 8 },
-                ]}
-              >
-                Note
+            <TouchableOpacity
+              onPress={onClose}
+              style={{
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: "center",
+                backgroundColor: colors.light__gray,
+              }}
+            >
+              <Text style={[textStyles.label_md, { color: colors.text }]}>
+                Close
               </Text>
-              <Text style={[textStyles.body_md, { color: "white" }]}>
-                {t.description}
-              </Text>
-            </View>
-          ) : null}
-
-          <TouchableOpacity
-            onPress={onClose}
-            style={{
-              paddingVertical: 14,
-              borderRadius: 12,
-              alignItems: "center",
-              backgroundColor: colors.light__gray,
-            }}
-          >
-            <Text style={[textStyles.label_md, { color: colors.text }]}>
-              Close
-            </Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Pressable>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     </Modal>
   );
 }
