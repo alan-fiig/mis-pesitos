@@ -16,23 +16,19 @@ const HEADER_ALIASES: Record<string, string> = {
   amount: "amount",
   monto: "amount",
   cantidad: "amount",
-  installment_group: "installment_group",
-  installment_index: "installment_index",
-  installment_total: "installment_total",
 };
 
 export function buildWorkbookBase64(transactions: Expense[]): string {
-  const rows = transactions.map((t) => ({
-    date: t.date.slice(0, 10),
-    type: t.type,
-    category: t.category,
-    name: t.name ?? "",
-    description: t.description ?? "",
-    amount: t.amount,
-    installment_group: t.installment_group ?? "",
-    installment_index: t.installment_index ?? "",
-    installment_total: t.installment_total ?? "",
-  }));
+  const rows = transactions
+    .filter((t) => t.type === "expense")
+    .sort((a, b) => b.date.localeCompare(a.date)) // newest first
+    .map((t) => ({
+      date: t.date.slice(0, 10),
+      category: t.category,
+      name: t.name ?? "",
+      description: t.description ?? "",
+      amount: t.amount,
+    }));
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Transactions");
@@ -55,14 +51,16 @@ export function parseWorkbookBase64(base64: string): Expense[] {
   if (rawRows.length === 0) throw new Error("The sheet is empty");
 
   const now = Date.now().toString();
-  return rawRows.map((raw, i) => parseRow(raw, i, now));
+  return rawRows
+    .map((raw, i) => parseRow(raw, i, now))
+    .filter((t): t is Expense => t !== null);
 }
 
 function parseRow(
   raw: Record<string, unknown>,
   index: number,
   now: string,
-): Expense {
+): Expense | null {
   const row: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(raw)) {
     const field = HEADER_ALIASES[normalizeHeader(key)];
@@ -70,30 +68,29 @@ function parseRow(
   }
   const rowNumber = index + 2; // header is row 1 in the sheet
 
+  // Imports are expenses-only. Rows from older backups marked as income are
+  // skipped so they don't silently become expenses.
+  if (parseType(row.type) === "income") return null;
+
   const date = parseDate(row.date);
-  const type = parseType(row.type);
   const category = String(row.category ?? "").trim();
   const amount = parseAmount(row.amount);
 
   if (!date) throw new Error(`Row ${rowNumber}: invalid date`);
-  if (!type) throw new Error(`Row ${rowNumber}: type must be income or expense`);
   if (!category) throw new Error(`Row ${rowNumber}: missing category`);
   if (amount == null) throw new Error(`Row ${rowNumber}: invalid amount`);
 
-  const expense: Expense = { id: now + index, type, amount, category, date };
+  const expense: Expense = {
+    id: now + index,
+    type: "expense",
+    amount,
+    category,
+    date,
+  };
   const name = String(row.name ?? "").trim();
   const description = String(row.description ?? "").trim();
   if (name) expense.name = name;
   if (description) expense.description = description;
-
-  const group = String(row.installment_group ?? "").trim();
-  if (group) {
-    expense.installment_group = group;
-    const idx = toInt(row.installment_index);
-    const total = toInt(row.installment_total);
-    if (idx != null) expense.installment_index = idx;
-    if (total != null) expense.installment_total = total;
-  }
   return expense;
 }
 
@@ -146,9 +143,4 @@ function parseAmount(v: unknown): number | null {
     if (Number.isFinite(n)) return n;
   }
   return null;
-}
-
-function toInt(v: unknown): number | null {
-  const n = typeof v === "number" ? v : parseInt(String(v), 10);
-  return Number.isInteger(n) ? n : null;
 }

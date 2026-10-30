@@ -40,8 +40,8 @@ export function HistoryScreen() {
 
   const handleExportExcel = async () => {
     if (excelBusy) return;
-    if (transactions.length === 0) {
-      showToast({ type: "error", title: "No transactions to export" });
+    if (!transactions.some((t) => t.type === "expense")) {
+      showToast({ type: "error", title: "No expenses to export" });
       return;
     }
     setExcelBusy("export");
