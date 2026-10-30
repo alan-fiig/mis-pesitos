@@ -19,7 +19,10 @@ import {
 } from "@expo/vector-icons";
 import { textStyles } from "../../../shared/theme/typography";
 import { colors } from "../../../shared/theme/colors";
-import { formatAmount, parseAmount } from "../../transactions/components/AmountInput";
+import {
+  formatAmount,
+  parseAmount,
+} from "../../transactions/components/AmountInput";
 import {
   INCOME_CATEGORIES,
   EXPENSE_CATEGORIES,
@@ -45,8 +48,18 @@ interface Props {
 const { height: screenHeight } = Dimensions.get("window");
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const ALL_CATEGORIES: Category[] = [
@@ -71,7 +84,9 @@ function IconRenderer({
 }) {
   switch (family) {
     case "MaterialCommunityIcons":
-      return <MaterialCommunityIcons name={name as any} size={size} color={color} />;
+      return (
+        <MaterialCommunityIcons name={name as any} size={size} color={color} />
+      );
     case "MaterialIcons":
       return <MaterialIcons name={name as any} size={size} color={color} />;
     case "Ionicons":
@@ -123,7 +138,12 @@ function MonthPicker({
         >
           <Ionicons name="chevron-back" size={18} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[textStyles.label_md, { color: colors.text, fontWeight: "700" }]}>
+        <Text
+          style={[
+            textStyles.label_md,
+            { color: colors.text, fontWeight: "700" },
+          ]}
+        >
           {year}
         </Text>
         <TouchableOpacity
@@ -149,7 +169,9 @@ function MonthPicker({
                 marginVertical: 2,
                 borderRadius: 8,
                 alignItems: "center",
-                backgroundColor: isSelected ? colors.primary : colors.light__gray,
+                backgroundColor: isSelected
+                  ? colors.primary
+                  : colors.light__gray,
               }}
             >
               <Text
@@ -168,16 +190,31 @@ function MonthPicker({
   );
 }
 
-export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply }: Props) {
-  const [dateFrom, setDateFrom] = useState<string | undefined>(initialFilters.dateFrom);
-  const [dateTo, setDateTo] = useState<string | undefined>(initialFilters.dateTo);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialFilters.categories);
+export function AdvancedFiltersModal({
+  visible,
+  initialFilters,
+  onClose,
+  onApply,
+}: Props) {
+  const [dateFrom, setDateFrom] = useState<string | undefined>(
+    initialFilters.dateFrom,
+  );
+  const [dateTo, setDateTo] = useState<string | undefined>(
+    initialFilters.dateTo,
+  );
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialFilters.categories,
+  );
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [minAmount, setMinAmount] = useState(
-    initialFilters.minAmount != null ? formatAmount(String(initialFilters.minAmount)) : "",
+    initialFilters.minAmount != null
+      ? formatAmount(String(initialFilters.minAmount))
+      : "",
   );
   const [maxAmount, setMaxAmount] = useState(
-    initialFilters.maxAmount != null ? formatAmount(String(initialFilters.maxAmount)) : "",
+    initialFilters.maxAmount != null
+      ? formatAmount(String(initialFilters.maxAmount))
+      : "",
   );
 
   const translateY = useRef(new Animated.Value(-screenHeight)).current;
@@ -189,10 +226,14 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
       setDateTo(initialFilters.dateTo);
       setSelectedCategories(initialFilters.categories);
       setMinAmount(
-        initialFilters.minAmount != null ? formatAmount(String(initialFilters.minAmount)) : "",
+        initialFilters.minAmount != null
+          ? formatAmount(String(initialFilters.minAmount))
+          : "",
       );
       setMaxAmount(
-        initialFilters.maxAmount != null ? formatAmount(String(initialFilters.maxAmount)) : "",
+        initialFilters.maxAmount != null
+          ? formatAmount(String(initialFilters.maxAmount))
+          : "",
       );
       translateY.setValue(-screenHeight);
       opacity.setValue(0);
@@ -252,8 +293,16 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
   const hasMore = ALL_CATEGORIES.length > MAX_VISIBLE_CATEGORIES;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }} onPress={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+    >
+      <Pressable
+        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}
+        onPress={onClose}
+      >
         <Animated.View
           style={{
             transform: [{ translateY }],
@@ -263,11 +312,11 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
             borderBottomRightRadius: 24,
             paddingHorizontal: 20,
             paddingBottom: 24,
-            paddingTop: 12,
+            paddingTop: 30,
             maxHeight: "85%",
           }}
         >
-          <Pressable onPress={() => {}}>
+          <Pressable onPress={() => {}} style={{ flexGrow: 0, flexShrink: 1 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -294,29 +343,57 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[textStyles.label_lg, { color: colors.text, marginBottom: 10 }]}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{ flexGrow: 0, flexShrink: 1 }}
+            >
+              <Text
+                style={[
+                  textStyles.label_lg,
+                  { color: colors.text, marginBottom: 10 },
+                ]}
+              >
                 Date
               </Text>
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[textStyles.label_sm, { color: colors.text, marginBottom: 6 }]}>
+                  <Text
+                    style={[
+                      textStyles.label_sm,
+                      { color: colors.text, marginBottom: 6 },
+                    ]}
+                  >
                     From
                   </Text>
                   <MonthPicker value={dateFrom} onChange={setDateFrom} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[textStyles.label_sm, { color: colors.text, marginBottom: 6 }]}>
+                  <Text
+                    style={[
+                      textStyles.label_sm,
+                      { color: colors.text, marginBottom: 6 },
+                    ]}
+                  >
                     To
                   </Text>
                   <MonthPicker value={dateTo} onChange={setDateTo} />
                 </View>
               </View>
 
-              <Text style={[textStyles.label_lg, { color: colors.text, marginTop: 24, marginBottom: 10 }]}>
+              <Text
+                style={[
+                  textStyles.label_lg,
+                  { color: colors.text, marginTop: 24, marginBottom: 10 },
+                ]}
+              >
                 Categories
               </Text>
-              <Text style={[textStyles.body_sm, { color: colors.text, marginBottom: 10 }]}>
+              <Text
+                style={[
+                  textStyles.body_sm,
+                  { color: colors.text, marginBottom: 10 },
+                ]}
+              >
                 {selectedCategories.length === 0
                   ? "Showing all categories"
                   : `${selectedCategories.length} selected`}
@@ -332,7 +409,9 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 6,
-                        backgroundColor: isSelected ? colors.primary : colors.dark_gray,
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : colors.dark_gray,
                         borderRadius: 9999,
                         paddingHorizontal: 14,
                         paddingVertical: 8,
@@ -380,12 +459,22 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
                 )}
               </View>
 
-              <Text style={[textStyles.label_lg, { color: colors.text, marginTop: 24, marginBottom: 10 }]}>
+              <Text
+                style={[
+                  textStyles.label_lg,
+                  { color: colors.text, marginTop: 24, marginBottom: 10 },
+                ]}
+              >
                 Amount
               </Text>
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[textStyles.label_sm, { color: colors.text, marginBottom: 6 }]}>
+                  <Text
+                    style={[
+                      textStyles.label_sm,
+                      { color: colors.text, marginBottom: 6 },
+                    ]}
+                  >
                     Min
                   </Text>
                   <View
@@ -397,7 +486,12 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
                       paddingHorizontal: 14,
                     }}
                   >
-                    <Text style={[textStyles.label_lg, { color: colors.primary, marginRight: 6 }]}>
+                    <Text
+                      style={[
+                        textStyles.label_lg,
+                        { color: colors.primary, marginRight: 6 },
+                      ]}
+                    >
                       $
                     </Text>
                     <TextInput
@@ -416,7 +510,12 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
                   </View>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[textStyles.label_sm, { color: colors.text, marginBottom: 6 }]}>
+                  <Text
+                    style={[
+                      textStyles.label_sm,
+                      { color: colors.text, marginBottom: 6 },
+                    ]}
+                  >
                     Max
                   </Text>
                   <View
@@ -428,7 +527,12 @@ export function AdvancedFiltersModal({ visible, initialFilters, onClose, onApply
                       paddingHorizontal: 14,
                     }}
                   >
-                    <Text style={[textStyles.label_lg, { color: colors.primary, marginRight: 6 }]}>
+                    <Text
+                      style={[
+                        textStyles.label_lg,
+                        { color: colors.primary, marginRight: 6 },
+                      ]}
+                    >
                       $
                     </Text>
                     <TextInput
