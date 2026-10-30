@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ScrollView, View, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTransactionForm } from "../hooks/useTransactionForm";
@@ -14,8 +15,12 @@ import { MonthsSelector } from "../components/MonthsSelector";
 
 export function TransactionsScreen() {
   const navigation = useNavigation<any>();
-  const setEditingTransaction = useTransactionsStore((s) => s.setEditingTransaction);
-  const { fields, errors, updateField, submit, isEditing, originalType } = useTransactionForm();
+  const scrollRef = useRef<ScrollView>(null);
+  const setEditingTransaction = useTransactionsStore(
+    (s) => s.setEditingTransaction,
+  );
+  const { fields, errors, updateField, submit, isEditing, originalType } =
+    useTransactionForm();
 
   const handleCancel = () => {
     setEditingTransaction(null);
@@ -26,6 +31,8 @@ export function TransactionsScreen() {
     const wasEditing = await submit();
     if (wasEditing) {
       navigation.navigate("History");
+    } else {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
     }
   };
 
@@ -34,7 +41,10 @@ export function TransactionsScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView style={{ flex: 1, paddingHorizontal: 20, marginVertical: 30 }}>
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1, paddingHorizontal: 20, marginVertical: 30 }}
+      >
         <View>
           <TittleTransaction
             title={isEditing ? "Edit Transaction" : "New Transaction"}
