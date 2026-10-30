@@ -1,5 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { Pressable } from "react-native";
 import { DashboardScreen } from "../features/dashboard/screens/DashboardScreen";
 import { HistoryScreen } from "../features/history/screens/HistoryScreen";
 import { InsightsScreen } from "../features/insights/screens/InsightsScreen";
@@ -16,6 +18,18 @@ const iconMap = {
   Transactions: "swap-horizontal-outline",
 } as const;
 
+// Pressable sin android_ripple: quita la "burbuja" al tocar un tab
+function TabButton({
+  android_ripple: _androidRipple,
+  pressColor: _pressColor,
+  pressOpacity: _pressOpacity,
+  hoverEffect: _hoverEffect,
+  href: _href,
+  ...props
+}: BottomTabBarButtonProps) {
+  return <Pressable {...props} />;
+}
+
 export function BottomTabs() {
   return (
     <Tab.Navigator
@@ -26,6 +40,7 @@ export function BottomTabs() {
         ),
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.icons,
+        tabBarButton: TabButton,
         tabBarStyle: {
           backgroundColor: colors.dark_gray,
           height: 90,
