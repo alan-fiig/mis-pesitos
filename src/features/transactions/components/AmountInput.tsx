@@ -49,11 +49,8 @@ export function AmountInput({ value, onChange, error }: Props) {
           placeholderTextColor={colors.light__gray}
           style={[
             textStyles.headline_lg,
-            {
-              color: "white",
-              textAlign: "center",
-              paddingLeft: 28,
-            },
+            // Ancho fijo: el $ no se desplaza y el texto no se recorta
+            { color: "white", width: 220, textAlign: "center" },
           ]}
         />
       </View>
