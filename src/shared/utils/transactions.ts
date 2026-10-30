@@ -21,7 +21,10 @@ export const ICON_SETS = {
 export function getCategoryIcon(label: string, type: "income" | "expense") {
   const categories =
     type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-  const cat = categories.find((c) => c.label === label);
+  // "Personal" se retiró de las categorías; los gastos viejos usan Hobbies.
+  const cat = categories.find(
+    (c) => c.label === (label === "Personal" ? "Hobbies" : label),
+  );
   if (!cat) return { iconFamily: "AntDesign" as const, icon: "questioncircle" };
   return { iconFamily: cat.iconFamily, icon: cat.icon };
 }
