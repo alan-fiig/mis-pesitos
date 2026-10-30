@@ -1,6 +1,23 @@
 import * as XLSX from "xlsx";
 import type { Expense, TransactionType } from "../../../types/expense";
 
+// Two expenses are "the same" if every business field matches (imported
+// rows regenerate ids, so id can't be the dedupe key).
+function businessKey(t: Expense): string {
+  return [t.type, t.date.slice(0, 10), t.amount, t.category, t.name ?? "", t.description ?? ""].join("|");
+}
+
+/** Drops rows already present in `existing` or repeated within `imported`. */
+export function dedupeExpenses(imported: Expense[], existing: Expense[]): Expense[] {
+  const keys = new Set(existing.map(businessKey));
+  return imported.filter((t) => {
+    const key = businessKey(t);
+    if (keys.has(key)) return false;
+    keys.add(key);
+    return true;
+  });
+}
+
 // Headers accepted on import (normalized: lowercase, no accents).
 const HEADER_ALIASES: Record<string, string> = {
   date: "date",

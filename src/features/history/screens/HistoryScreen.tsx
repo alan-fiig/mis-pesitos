@@ -17,6 +17,7 @@ import {
   exportTransactionsToExcel,
   pickTransactionsFromExcel,
 } from "../services/excel";
+import { dedupeExpenses } from "../services/excelParse";
 import type { Expense } from "../../../types/expense";
 import type { TypeFilter } from "../components/FilterChips";
 
@@ -61,11 +62,25 @@ export function HistoryScreen() {
     try {
       const imported = await pickTransactionsFromExcel();
       if (imported) {
-        await addTransactions(imported);
-        showToast({
-          type: "success",
-          title: `${imported.length} transactions imported`,
-        });
+        const fresh = dedupeExpenses(imported, transactions);
+        const skipped = imported.length - fresh.length;
+        if (fresh.length > 0) {
+          await addTransactions(fresh);
+          showToast({
+            type: "success",
+            title: `${fresh.length} expenses imported`,
+            message: skipped > 0 ? `${skipped} duplicates skipped` : undefined,
+          });
+        } else {
+          showToast({
+            type: "success",
+            title: "Nothing imported",
+            message:
+              imported.length === 0
+                ? "No expense rows in the file"
+                : "All rows already exist",
+          });
+        }
       }
     } catch (e) {
       showToast({

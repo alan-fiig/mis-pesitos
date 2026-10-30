@@ -1,4 +1,3 @@
-import * as DocumentPicker from "expo-document-picker";
 import { Directory, File } from "expo-file-system";
 import type { Expense } from "../../../types/expense";
 import { buildWorkbookBase64, parseWorkbookBase64 } from "./excelParse";
@@ -30,12 +29,13 @@ export async function exportTransactionsToExcel(
 
 /** Returns null when the user cancels the picker. Throws on invalid files. */
 export async function pickTransactionsFromExcel(): Promise<Expense[] | null> {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: [XLSX_MIME, "application/vnd.ms-excel"],
-    copyToCacheDirectory: true,
+  // File.pickFileAsync (not expo-document-picker): the returned File carries
+  // the picker's SAF read grant, which expo-file-system v58 requires to read it.
+  const picked = await File.pickFileAsync({
+    mimeTypes: [XLSX_MIME, "application/vnd.ms-excel"],
   });
-  if (result.canceled) return null;
+  if (picked.canceled || !picked.result) return null;
 
-  const base64 = await new File(result.assets[0].uri).base64();
+  const base64 = await picked.result.base64();
   return parseWorkbookBase64(base64);
 }

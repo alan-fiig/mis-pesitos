@@ -19,6 +19,7 @@ const iconMap = {
 export function BottomTabs() {
   return (
     <Tab.Navigator
+      detachInactiveScreens={false}
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={iconMap[route.name]} size={size} color={color} />
