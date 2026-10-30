@@ -6,12 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
-    "splash": {
-      "image": "./assets/Logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#121212"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -20,7 +14,6 @@
         "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#121212"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.mispesitos"
     },
@@ -28,6 +21,14 @@
       "favicon": "./assets/Logo.png"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/Logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#121212"
+        }
+      ],
       "@react-native-community/datetimepicker",
       "expo-sqlite",
       "expo-font"

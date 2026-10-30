@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { ScrollView, View, KeyboardAvoidingView, Platform } from "react-native";
+import type { ScrollViewInstance } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTransactionForm } from "../hooks/useTransactionForm";
 import { useTransactionsStore } from "../../../store/transactionsStore";
@@ -15,7 +16,7 @@ import { MonthsSelector } from "../components/MonthsSelector";
 
 export function TransactionsScreen() {
   const navigation = useNavigation<any>();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const setEditingTransaction = useTransactionsStore(
     (s) => s.setEditingTransaction,
   );
