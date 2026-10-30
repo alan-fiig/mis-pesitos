@@ -1,5 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Animated, Dimensions, PanResponder, Text, View } from "react-native";
+import type {
+  GestureResponderEvent,
+  PanResponderGestureState,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { textStyles } from "../theme/typography";
 import { colors } from "../theme/colors";
@@ -49,19 +53,27 @@ export function Toast({ id, type, title, message, onDismiss }: Props) {
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
+      onMoveShouldSetPanResponder: (
+        _e: GestureResponderEvent,
+        g: PanResponderGestureState,
+      ) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
       onPanResponderGrant: () => {
         if (timerRef.current) clearTimeout(timerRef.current);
       },
-      onPanResponderMove: (_, g) => translateX.setValue(g.dx),
+      onPanResponderMove: (
+        _e: GestureResponderEvent,
+        g: PanResponderGestureState,
+      ) => translateX.setValue(g.dx),
       onPanResponderTerminate: () => {
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
         }).start(() => autoHide());
       },
-      onPanResponderRelease: (_, g) => {
+      onPanResponderRelease: (
+        _e: GestureResponderEvent,
+        g: PanResponderGestureState,
+      ) => {
         if (Math.abs(g.dx) > 80) {
           dismissedRef.current = true;
           Animated.timing(translateX, {

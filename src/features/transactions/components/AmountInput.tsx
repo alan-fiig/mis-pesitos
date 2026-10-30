@@ -43,7 +43,7 @@ export function AmountInput({ value, onChange, error }: Props) {
         </Text>
         <TextInput
           value={value}
-          onChangeText={(text) => onChange(formatAmount(text))}
+          onChangeText={(text: string) => onChange(formatAmount(text))}
           keyboardType="numeric"
           placeholder="0.00"
           placeholderTextColor={colors.light__gray}
