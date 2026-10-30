@@ -1,7 +1,12 @@
 import { useTransactionsStore } from "../../../store/transactionsStore";
 import type { Expense } from "../../../types/expense";
 
-function monthOf(dateStr: string): { y: number; m: number } {
+export interface YearMonth {
+  y: number;
+  m: number;
+}
+
+function monthOf(dateStr: string): YearMonth {
   const [y, m] = dateStr.split("-").map(Number);
   return { y, m };
 }
@@ -11,11 +16,29 @@ function isInMonth(t: Expense, y: number, m: number): boolean {
   return date.y === y && date.m === m;
 }
 
-export function useMonthlyExpenses() {
+/** Months with at least one expense, never beyond the current month. */
+export function useAvailableMonths(): YearMonth[] {
   const transactions = useTransactionsStore((s) => s.transactions);
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const current = { y: now.getFullYear(), m: now.getMonth() + 1 };
+
+  const seen = new Set<number>([current.y * 12 + current.m]);
+  for (const t of transactions) {
+    if (t.type !== "expense") continue;
+    const d = monthOf(t.date.slice(0, 10));
+    const key = d.y * 12 + d.m;
+    if (key <= current.y * 12 + current.m) seen.add(key);
+  }
+
+  return [...seen]
+    .sort((a, b) => b - a)
+    .map((key) => ({ y: Math.floor((key - 1) / 12), m: ((key - 1) % 12) + 1 }));
+}
+
+export function useMonthlyExpenses(target: YearMonth) {
+  const transactions = useTransactionsStore((s) => s.transactions);
+  const year = target.y;
+  const month = target.m;
 
   const prev = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 };
 

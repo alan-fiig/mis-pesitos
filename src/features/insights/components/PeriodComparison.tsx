@@ -1,7 +1,10 @@
 import { View, Text } from "react-native";
 import { colors } from "../../../shared/theme/colors";
 import { textStyles } from "../../../shared/theme/typography";
-import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
+import {
+  useMonthlyExpenses,
+  type YearMonth,
+} from "../hooks/useMonthlyExpenses";
 
 function formatAmount(amount: number): string {
   return `$${amount.toLocaleString("en-US", {
@@ -64,8 +67,8 @@ function PeriodRow({
   );
 }
 
-export function PeriodComparison() {
-  const { currentTotal, previousTotal } = useMonthlyExpenses();
+export function PeriodComparison({ month }: { month: YearMonth }) {
+  const { currentTotal, previousTotal } = useMonthlyExpenses(month);
 
   const maxMonth = Math.max(currentTotal, previousTotal);
   const ratio = maxMonth > 0 ? (value: number) => value / maxMonth : () => 0;
@@ -88,14 +91,14 @@ export function PeriodComparison() {
       </Text>
 
       <PeriodRow
-        label="This Month"
+        label="Selected Month"
         amount={currentTotal}
         color={colors.primary}
         ratio={ratio(currentTotal)}
       />
 
       <PeriodRow
-        label="Last Month"
+        label="Previous Month"
         amount={previousTotal}
         color="#6B7280"
         ratio={ratio(previousTotal)}

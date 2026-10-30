@@ -5,11 +5,15 @@ import { PieChart } from "react-native-gifted-charts";
 import { colors } from "../../../shared/theme/colors";
 import { textStyles } from "../../../shared/theme/typography";
 import { PIE_COLORS } from "../constants";
-import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
 import {
-  currentYearMonth,
-  openMonthHistory,
-} from "../../../shared/utils/historyFilters";
+  useMonthlyExpenses,
+  type YearMonth,
+} from "../hooks/useMonthlyExpenses";
+import { openMonthHistory } from "../../../shared/utils/historyFilters";
+
+function toYearMonthString({ y, m }: YearMonth): string {
+  return `${y}-${String(m).padStart(2, "0")}`;
+}
 
 function formatAmount(amount: number): string {
   return `$${amount.toLocaleString("en-US", {
@@ -22,9 +26,9 @@ function formatPercent(change: number): string {
   return `${Math.abs(change).toFixed(1)}%`;
 }
 
-export function MonthlyExpensePieChart() {
+export function MonthlyExpensePieChart({ month }: { month: YearMonth }) {
   const navigation = useNavigation<any>();
-  const { entries, currentTotal, change } = useMonthlyExpenses();
+  const { entries, currentTotal, change } = useMonthlyExpenses(month);
 
   const isUp = change !== null && change >= 0;
   const changeColorBackground = isUp ? colors.light_red : colors.light_green;
@@ -68,9 +72,12 @@ export function MonthlyExpensePieChart() {
           onPress={(item: any, index: number) => {
             const category = entries[index]?.[0];
             if (category) {
-              openMonthHistory(navigation, currentYearMonth(), "expense", [
-                category,
-              ]);
+              openMonthHistory(
+                navigation,
+                toYearMonthString(month),
+                "expense",
+                [category],
+              );
             }
           }}
           centerLabelComponent={() => (
@@ -122,7 +129,7 @@ export function MonthlyExpensePieChart() {
                   </View>
                 ) : null}
                 <Text style={[textStyles.label_sm, { color: changeColor }]}>
-                  vs last month
+                  vs prev month
                 </Text>
               </View>
             </View>
