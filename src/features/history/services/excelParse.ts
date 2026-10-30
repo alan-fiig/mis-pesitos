@@ -95,7 +95,10 @@ function parseRow(
 
   if (!date) throw new Error(`Row ${rowNumber}: invalid date`);
   if (!category) throw new Error(`Row ${rowNumber}: missing category`);
-  if (amount == null) throw new Error(`Row ${rowNumber}: invalid amount`);
+  // Same rule as the form (useTransactionForm): positive amounts only.
+  if (amount == null || amount <= 0) {
+    throw new Error(`Row ${rowNumber}: invalid amount`);
+  }
 
   const expense: Expense = {
     id: now + index,
@@ -121,29 +124,34 @@ function normalizeHeader(h: string): string {
 
 function parseDate(v: unknown): string | null {
   if (v instanceof Date && !isNaN(v.getTime())) {
-    const y = v.getFullYear();
-    const m = String(v.getMonth() + 1).padStart(2, "0");
-    const d = String(v.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    return ymd(v.getFullYear(), v.getMonth() + 1, v.getDate());
   }
   if (typeof v === "number" && v > 0) {
     // Excel serial date (days since 1899-12-30)
-    return new Date(Math.round((v - 25569) * 86400000))
-      .toISOString()
-      .slice(0, 10);
+    const d = new Date(Math.round((v - 25569) * 86400000));
+    return ymd(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
   }
   if (typeof v === "string") {
     const s = v.trim();
     const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
-    if (iso) {
-      return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
-    }
+    if (iso) return ymd(+iso[1], +iso[2], +iso[3]);
     const latam = /^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})/.exec(s);
-    if (latam) {
-      return `${latam[3]}-${latam[2].padStart(2, "0")}-${latam[1].padStart(2, "0")}`;
-    }
+    if (latam) return ymd(+latam[3], +latam[2], +latam[1]);
   }
   return null;
+}
+
+/** "YYYY-MM-DD" only when the calendar date exists; null otherwise. */
+function ymd(y: number, m: number, d: number): string | null {
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (
+    date.getUTCFullYear() !== y ||
+    date.getUTCMonth() !== m - 1 ||
+    date.getUTCDate() !== d
+  ) {
+    return null;
+  }
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 function parseType(v: unknown): TransactionType | null {
@@ -154,10 +162,28 @@ function parseType(v: unknown): TransactionType | null {
 }
 
 function parseAmount(v: unknown): number | null {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "number" && Number.isFinite(v)) return roundCents(v);
   if (typeof v === "string") {
-    const n = parseFloat(v.replace(/[^0-9.\-]/g, ""));
-    if (Number.isFinite(n)) return n;
+    const n = parseFloat(normalizeNumericString(v));
+    if (Number.isFinite(n)) return roundCents(n);
   }
   return null;
+}
+
+function roundCents(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** "1.234,56" -> "1234.56"; "1,234.56" and "1234" unchanged. */
+function normalizeNumericString(v: string): string {
+  const s = v.replace(/[^0-9.,-]/g, "");
+  const lastComma = s.lastIndexOf(",");
+  const lastDot = s.lastIndexOf(".");
+  if (lastDot !== -1 && lastComma > lastDot) {
+    return s.replace(/\./g, "").replace(",", "."); // coma decimal europea
+  }
+  if (lastDot === -1 && lastComma !== -1 && !/^\d{1,3}(,\d{3})+$/.test(s)) {
+    return s.replace(",", "."); // "1234,56" -> decimal; "1,234" -> miles
+  }
+  return s.replace(/,/g, "");
 }

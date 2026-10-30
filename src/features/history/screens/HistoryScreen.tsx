@@ -40,7 +40,6 @@ export function HistoryScreen() {
   const [excelBusy, setExcelBusy] = useState<ExcelAction | null>(null);
 
   const handleExportExcel = async () => {
-    if (excelBusy) return;
     if (!transactions.some((t) => t.type === "expense")) {
       showToast({ type: "error", title: "No expenses to export" });
       return;
@@ -57,7 +56,6 @@ export function HistoryScreen() {
   };
 
   const handleImportExcel = async () => {
-    if (excelBusy) return;
     setExcelBusy("import");
     try {
       const imported = await pickTransactionsFromExcel();
@@ -83,6 +81,8 @@ export function HistoryScreen() {
         }
       }
     } catch (e) {
+      // Si el insert falló a mitad del lote, refresca para no duplicar al reintentar.
+      await loadTransactions();
       showToast({
         type: "error",
         title: "Import failed",

@@ -21,7 +21,10 @@ export async function exportTransactionsToExcel(
     throw e;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Fecha local de México para el nombre (toISOString daría UTC y "mañana").
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Mexico_City",
+  });
   const file = dir.createFile(`mis-pesitos-backup-${today}.xlsx`, XLSX_MIME);
   await file.write(base64, { encoding: "base64" });
   return true;
@@ -31,6 +34,9 @@ export async function exportTransactionsToExcel(
 export async function pickTransactionsFromExcel(): Promise<Expense[] | null> {
   // File.pickFileAsync (not expo-document-picker): the returned File carries
   // the picker's SAF read grant, which expo-file-system v58 requires to read it.
+  // shortcut: File.pickFileAsync convierte todo error nativo en canceled:true, así
+  // que un fallo real del selector también cae aquí sin aviso; si un fallo debe
+  // verse en pantalla, vuelve a expo-document-picker.
   const picked = await File.pickFileAsync({
     mimeTypes: [XLSX_MIME, "application/vnd.ms-excel"],
   });
