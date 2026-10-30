@@ -15,6 +15,11 @@ export interface Category {
 export const INCOME_CATEGORIES: Category[] = [
   { label: "Salary", iconFamily: "AntDesign", icon: "wallet" },
   { label: "Freelance", iconFamily: "AntDesign", icon: "laptop" },
+  {
+    label: "Cashback",
+    iconFamily: "MaterialCommunityIcons",
+    icon: "cash-check",
+  },
 ];
 
 export const EXPENSE_CATEGORIES: Category[] = [
