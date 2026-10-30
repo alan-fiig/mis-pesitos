@@ -12,6 +12,11 @@ import { SearchBar } from "../components/SearchBar";
 import { FilterChips } from "../components/FilterChips";
 import { ConfirmDeleteModal } from "../components/ConfirmDeleteModal";
 import { AdvancedFiltersModal, type HistoryFilters } from "../components/AdvancedFiltersModal";
+import { ExcelFabs, type ExcelAction } from "../components/ExcelFabs";
+import {
+  exportTransactionsToExcel,
+  pickTransactionsFromExcel,
+} from "../services/excel";
 import type { Expense } from "../../../types/expense";
 import type { TypeFilter } from "../components/FilterChips";
 
@@ -21,6 +26,7 @@ export function HistoryScreen() {
   const transactions = useTransactionsStore((s) => s.transactions);
   const loadTransactions = useTransactionsStore((s) => s.loadTransactions);
   const removeTransaction = useTransactionsStore((s) => s.removeTransaction);
+  const addTransactions = useTransactionsStore((s) => s.addTransactions);
   const setEditingTransaction = useTransactionsStore((s) => s.setEditingTransaction);
   const { showToast } = useToast();
 
@@ -30,6 +36,47 @@ export function HistoryScreen() {
   const [filters, setFilters] = useState<HistoryFilters>({ categories: [] });
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Expense | null>(null);
+  const [excelBusy, setExcelBusy] = useState<ExcelAction | null>(null);
+
+  const handleExportExcel = async () => {
+    if (excelBusy) return;
+    if (transactions.length === 0) {
+      showToast({ type: "error", title: "No transactions to export" });
+      return;
+    }
+    setExcelBusy("export");
+    try {
+      const saved = await exportTransactionsToExcel(transactions);
+      if (saved) showToast({ type: "success", title: "Backup saved" });
+    } catch {
+      showToast({ type: "error", title: "Error", message: "Could not export file" });
+    } finally {
+      setExcelBusy(null);
+    }
+  };
+
+  const handleImportExcel = async () => {
+    if (excelBusy) return;
+    setExcelBusy("import");
+    try {
+      const imported = await pickTransactionsFromExcel();
+      if (imported) {
+        await addTransactions(imported);
+        showToast({
+          type: "success",
+          title: `${imported.length} transactions imported`,
+        });
+      }
+    } catch (e) {
+      showToast({
+        type: "error",
+        title: "Import failed",
+        message: (e as Error).message,
+      });
+    } finally {
+      setExcelBusy(null);
+    }
+  };
 
   const handleEdit = (t: Expense) => {
     setEditingTransaction(t);
@@ -138,6 +185,14 @@ export function HistoryScreen() {
     </View>
   );
 
+  const excelFabs = (
+    <ExcelFabs
+      busy={excelBusy}
+      onImport={handleImportExcel}
+      onExport={handleExportExcel}
+    />
+  );
+
   if (transactions.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -149,6 +204,7 @@ export function HistoryScreen() {
             No transactions yet
           </Text>
         </View>
+        {excelFabs}
       </View>
     );
   }
@@ -172,7 +228,7 @@ export function HistoryScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: 20,
+              paddingBottom: 100, // room for the Excel FABs
             }}
             renderSectionHeader={({ section: { title } }) => (
               <Text
@@ -197,6 +253,8 @@ export function HistoryScreen() {
             )}
           />
         )}
+
+        {excelFabs}
       </View>
 
       <ConfirmDeleteModal
